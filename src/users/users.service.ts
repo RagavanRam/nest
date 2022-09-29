@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -13,26 +13,21 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    try {
-      const user = await this.userRepository.save(createUserDto);
-      return user;
-    } catch (error) {
-      if (error.code == '23505') {
-        throw new HttpException(error.detail, HttpStatus.BAD_REQUEST);
-      }
-    }
+    return this.userRepository.save(createUserDto);
   }
 
   findAll() {
-    return `This action returns all users`;
+    return this.userRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(request: string): Promise<User | undefined> {
+    return this.userRepository.findOne({
+      where: [{ username: request }, { email: request }],
+    });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+    return this.userRepository.update(id, updateUserDto);
   }
 
   remove(id: number) {

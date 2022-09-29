@@ -6,37 +6,55 @@ import {
   Patch,
   Param,
   Delete,
-  ValidationPipe,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LocalAuthGaurd } from 'src/auth/guards/local-auth.guard';
+import { ApiBody } from '@nestjs/swagger';
+import { LocalSigninDto } from './dto/local-signin.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthService } from 'src/auth/auth.service';
 
-@Controller('users')
+@Controller('local')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {}
 
-  @Post()
-  create(@Body(ValidationPipe) createUserDto: CreateUserDto) {
+  @Post('signup')
+  signUpLocal(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
+  @ApiBody({ type: LocalSigninDto })
+  @UseGuards(LocalAuthGaurd)
+  @Post('signin')
+  signInLocal(@Request() request: any): any {
+    return this.authService.signin(request.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users')
   findAll() {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
+  @Get('users/:id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+    return id;
+    // return this.usersService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('users/:id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
 
-  @Delete(':id')
+  @Delete('users/:id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
