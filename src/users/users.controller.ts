@@ -13,11 +13,13 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LocalAuthGaurd } from 'src/auth/guards/local-auth.guard';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { LocalSigninDto } from './dto/local-signin.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+// import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthService } from 'src/auth/auth.service';
+import { User } from './entities/user.entity';
 
+@ApiTags('users')
 @Controller('local')
 export class UsersController {
   constructor(
@@ -26,7 +28,7 @@ export class UsersController {
   ) {}
 
   @Post('signup')
-  signUpLocal(@Body() createUserDto: CreateUserDto) {
+  signUpLocal(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createUserDto);
   }
 
@@ -37,7 +39,7 @@ export class UsersController {
     return this.authService.signin(request.user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get('users')
   findAll() {
     return this.usersService.findAll();
@@ -45,8 +47,7 @@ export class UsersController {
 
   @Get('users/:id')
   findOne(@Param('id') id: string) {
-    return id;
-    // return this.usersService.findOne(+id);
+    return this.usersService.findOne(+id);
   }
 
   @Patch('users/:id')
