@@ -5,9 +5,21 @@ import { config } from './orm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { RolesModule } from './roles/roles.module';
+import { PermissionsModule } from './permissions/permissions.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(config), UsersModule, AuthModule],
+  imports: [
+    TypeOrmModule.forRootAsync({
+      useFactory: () => {
+        return config;
+      },
+    }),
+    UsersModule,
+    AuthModule,
+    RolesModule,
+    PermissionsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

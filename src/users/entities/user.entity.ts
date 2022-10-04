@@ -1,8 +1,18 @@
-import { BaseEntity } from 'src/base-entity';
-import { Column, Entity } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import {
+  BeforeUpdate,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
-@Entity('users')
-export class User extends BaseEntity {
+@Entity('user')
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  @Exclude()
+  id: string;
+
   @Column({ type: 'varchar', unique: true, nullable: false })
   username: string;
 
@@ -11,4 +21,17 @@ export class User extends BaseEntity {
 
   @Column({ type: 'varchar', nullable: false })
   password: string;
+
+  @CreateDateColumn({ nullable: true })
+  @Exclude()
+  createdAt: Date;
+
+  @CreateDateColumn({ nullable: true })
+  @Exclude()
+  updatedAt: Date;
+
+  @BeforeUpdate()
+  private async update() {
+    this.updatedAt = new Date();
+  }
 }

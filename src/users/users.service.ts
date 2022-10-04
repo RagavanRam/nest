@@ -1,10 +1,17 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { plainToClass } from 'class-transformer';
+
+import { User } from './entities/user.entity';
+import { CreateUserDto, UpdateUserDto, UserDto } from './dto/index';
+import { UserInterface } from './interfaces/index';
 
 @Injectable()
 export class UsersService {
@@ -13,7 +20,7 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<UserInterface> {
     const errorMessages: string[] = [];
     const username = await this.userRepository.findOne({
       where: { username: createUserDto.username },
@@ -23,42 +30,37 @@ export class UsersService {
     });
     if (username) errorMessages.push('username is already exist');
     if (email) errorMessages.push('email is already exist');
-    if (errorMessages.length)
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: errorMessages,
-          error: 'Bad Request',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+    if (errorMessages.length) throw new BadRequestException(errorMessages);
     const hash = await bcrypt.hash(createUserDto.password, 12);
-    return this.userRepository.save({ ...createUserDto, password: hash });
-  }
-
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({
-      select: { username: false },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...createdUser } = await this.userRepository.save({
+      ...createUserDto,
+      password: hash,
     });
+    return createdUser;
   }
 
-  async findOne(id: number): Promise<User | undefined> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user)
-      throw new HttpException(
-        `user not found with an id of ${id}`,
-        HttpStatus.NOT_FOUND,
-      );
-    return user;
+  async findAll(): Promise<UserInterface[]> {
+    const users = await this.userRepository.find();
+    return users.map((user) => plainToClass(UserDto, user));
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async findOne(id: string): Promise<UserInterface | undefined> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user)
-      throw new HttpException(
-        `user not found with an id of ${id}`,
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException(`user not found with an id of ${id}`);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...foundedUser } = user;
+    return foundedUser;
+  }
+
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserInterface> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user)
+      throw new NotFoundException(`user not found with an id of ${id}`);
     const errorMessages: string[] = [];
     if (updateUserDto.username && user.username !== updateUserDto.username) {
       const username = await this.userRepository.findOne({
@@ -72,26 +74,19 @@ export class UsersService {
       });
       if (email) errorMessages.push('email is already exist');
     }
-    if (errorMessages.length)
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: errorMessages,
-          error: 'Bad Request',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+    if (errorMessages.length) throw new BadRequestException(errorMessages);
     this.userRepository.merge(user, updateUserDto);
-    return this.userRepository.save(user);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...updatedUser } = await this.userRepository.save(user);
+    return updatedUser;
   }
 
-  async remove(id: number) {
+  async remove(id: string): Promise<UserInterface> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user)
-      throw new HttpException(
-        `user not found with an id of ${id}`,
-        HttpStatus.NOT_FOUND,
-      );
-    return await this.userRepository.remove(user);
+      throw new NotFoundException(`user not found with an id of ${id}`);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...deletedUser } = await this.userRepository.remove(user);
+    return { ...deletedUser, id };
   }
 }

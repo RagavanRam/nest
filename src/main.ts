@@ -15,12 +15,17 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   //set swagger document
   const config = new DocumentBuilder()
-    .setTitle('test server')
-    .setDescription('the server is under development')
-    .setVersion('0.1.0')
+    .setTitle('SIS NVTC API')
+    .addServer('http://')
+    .addServer('https://')
+    .setDescription('The SIS NVTC API is under development.')
+    .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/document', app, document);
+  SwaggerModule.setup('', app, document, {
+    customCss: '.swagger-ui .topbar { background-color: #014f79; }',
+  });
   //set port for the app
   await app.listen(3000);
 }
