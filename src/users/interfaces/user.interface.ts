@@ -1,4 +1,4 @@
-import { RoleDto } from 'src/roles/dto';
+import { Role } from 'src/roles/entities/role.entity';
 
 export interface UserInterface {
   id: string;
@@ -6,5 +6,5 @@ export interface UserInterface {
   email: string;
   createdAt: Date;
   updatedAt: Date;
-  role: RoleDto;
+  role: Role;
 }

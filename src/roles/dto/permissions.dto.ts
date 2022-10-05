@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { RolesDto } from './roles.dto';
 
-export class PermissionDto {
+export class PermissionsDto {
   @ApiProperty()
   id: number;
 
@@ -10,9 +9,6 @@ export class PermissionDto {
 
   @ApiProperty()
   status: boolean;
-
-  @ApiProperty({ isArray: true })
-  roles: RolesDto;
 
   @ApiProperty()
   createdAt: Date;

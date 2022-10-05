@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 
 import { User } from './entities/user.entity';
-import { CreateUserDto, UpdateUserDto, UserDto } from './dto';
+import { CreateUserDto, UpdateUserDto, UserTransformDto } from './dto';
 import { UserInterface } from './interfaces';
 import { Role } from 'src/roles/entities/role.entity';
 
@@ -60,7 +60,7 @@ export class UsersService {
     const users = await this.userRepository.find({
       relations: ['role', 'role.permissions'],
     });
-    return users.map((user) => plainToClass(UserDto, user));
+    return users.map((user) => plainToClass(UserTransformDto, user));
   }
 
   async findOne(id: string): Promise<UserInterface | undefined> {
