@@ -1,9 +1,12 @@
 import { Exclude } from 'class-transformer';
+import { Role } from 'src/roles/entities/role.entity';
 import {
   BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -30,8 +33,12 @@ export class User {
   @Exclude()
   updatedAt: Date;
 
+  @JoinColumn()
+  @ManyToOne(() => Role, (role) => role.users, { nullable: true })
+  role: Role;
+
   @BeforeUpdate()
-  private async update() {
+  private async atUpdate() {
     this.updatedAt = new Date();
   }
 }

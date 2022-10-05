@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
+import { RoleDto } from 'src/roles/dto';
 
 export class UserDto {
   @ApiProperty()
@@ -19,4 +20,7 @@ export class UserDto {
 
   @Exclude()
   password: string;
+
+  @ApiProperty()
+  role: RoleDto;
 }

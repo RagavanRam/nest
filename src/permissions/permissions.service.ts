@@ -8,8 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Permission } from './entities/permission.entity';
-import { CreatePermissionDto, UpdatePermissionDto } from './dto/index';
-import { PermissionInterface } from './interfaces/index';
+import { CreatePermissionDto, UpdatePermissionDto } from './dto';
+import { PermissionInterface } from './interfaces';
 
 @Injectable()
 export class PermissionsService {
@@ -31,12 +31,15 @@ export class PermissionsService {
   }
 
   async findAll(): Promise<PermissionInterface[]> {
-    return this.permissionRepository.find();
+    return this.permissionRepository.find({
+      relations: ['roles', 'roles.role'],
+    });
   }
 
   async findOne(id: number): Promise<PermissionInterface> {
     const permission = await this.permissionRepository.findOne({
       where: { id },
+      relations: ['roles', 'roles.role'],
     });
     if (!permission)
       throw new NotFoundException(`permission not found with an id of ${id}`);

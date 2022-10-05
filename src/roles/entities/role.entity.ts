@@ -1,5 +1,7 @@
 import { BaseEntity } from 'src/base-entity';
-import { Column, Entity } from 'typeorm';
+import { Rolesandpermission } from 'src/rolesandpermissions/entities/rolesandpermission.entity';
+import { User } from 'src/users/entities/user.entity';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity('role')
 export class Role extends BaseEntity {
@@ -8,4 +10,17 @@ export class Role extends BaseEntity {
 
   @Column({ type: 'boolean', nullable: false, default: true })
   status: boolean;
+
+  @OneToMany(
+    () => Rolesandpermission,
+    (rolesandpermissions) => rolesandpermissions.role,
+    { onDelete: 'CASCADE', onUpdate: 'CASCADE' },
+  )
+  permissions: Role[];
+
+  @OneToMany(() => User, (user) => user.role, {
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
+  })
+  users: User[];
 }

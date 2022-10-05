@@ -20,14 +20,10 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import {
-  CreatePermissionDto,
-  UpdatePermissionDto,
-  PermissionDto,
-} from './dto/index';
-import { PermissionInterface } from './interfaces/index';
 import { PermissionsService } from './permissions.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { CreatePermissionDto, UpdatePermissionDto, PermissionDto } from './dto';
+import { PermissionInterface } from './interfaces';
 
 @ApiBadRequestResponse({
   description: 'Error: Bad Request',

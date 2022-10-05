@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
 
@@ -21,10 +20,14 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 
-import { RolesService } from './roles.service';
+import { RolesandpermissionsService } from './rolesandpermissions.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CreateRoleDto, UpdateRoleDto, RoleDto } from './dto';
-import { RoleInterface } from './interfaces';
+import {
+  CreateRolesandpermissionDto,
+  UpdateRolesandpermissionDto,
+  RolesAndPermissionsDto,
+} from './dto';
+import { RolesAndPermissionsInterface } from './interfaces';
 
 @ApiBadRequestResponse({
   description: 'Error: Bad Request',
@@ -83,20 +86,24 @@ import { RoleInterface } from './interfaces';
     },
   },
 })
-@ApiTags('roles')
+@ApiTags('roles-and-permissions (Middlewere)')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('roles')
-export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+@Controller('rolesandpermissions')
+export class RolesandpermissionsController {
+  constructor(
+    private readonly rolesandpermissionsService: RolesandpermissionsService,
+  ) {}
 
   @ApiOkResponse({
     description: 'OK',
-    type: RoleDto,
+    type: RolesAndPermissionsDto,
   })
   @Post()
-  create(@Body() createRoleDto: CreateRoleDto): Promise<RoleInterface> {
-    return this.rolesService.create(createRoleDto);
+  create(
+    @Body() createRolesandpermissionDto: CreateRolesandpermissionDto,
+  ): Promise<RolesAndPermissionsInterface> {
+    return this.rolesandpermissionsService.create(createRolesandpermissionDto);
   }
 
   @ApiOkResponse({
@@ -105,43 +112,46 @@ export class RolesController {
       'application/json': {
         schema: {
           type: 'array',
-          items: { $ref: getSchemaPath(RoleDto) },
+          items: { $ref: getSchemaPath(RolesAndPermissionsDto) },
         },
       },
     },
   })
   @Get()
-  findAll(): Promise<RoleInterface[]> {
-    return this.rolesService.findAll();
+  findAll(): Promise<RolesAndPermissionsInterface[]> {
+    return this.rolesandpermissionsService.findAll();
   }
 
   @ApiOkResponse({
     description: 'OK',
-    type: RoleDto,
+    type: RolesAndPermissionsDto,
   })
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<RoleInterface> {
-    return this.rolesService.findOne(id);
+  findOne(@Param('id') id: string): Promise<RolesAndPermissionsInterface> {
+    return this.rolesandpermissionsService.findOne(+id);
   }
 
   @ApiOkResponse({
     description: 'OK',
-    type: RoleDto,
+    type: RolesAndPermissionsDto,
   })
   @Patch(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateRoleDto: UpdateRoleDto,
-  ): Promise<RoleInterface> {
-    return this.rolesService.update(id, updateRoleDto);
+    @Param('id') id: string,
+    @Body() updateRolesandpermissionDto: UpdateRolesandpermissionDto,
+  ): Promise<RolesAndPermissionsInterface> {
+    return this.rolesandpermissionsService.update(
+      +id,
+      updateRolesandpermissionDto,
+    );
   }
 
   @ApiOkResponse({
     description: 'OK',
-    type: RoleDto,
+    type: RolesAndPermissionsDto,
   })
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number): Promise<RoleInterface> {
-    return this.rolesService.remove(id);
+  remove(@Param('id') id: string): Promise<RolesAndPermissionsInterface> {
+    return this.rolesandpermissionsService.remove(+id);
   }
 }

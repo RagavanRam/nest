@@ -19,7 +19,7 @@ export class BaseEntity {
   updatedAt: Date;
 
   @BeforeUpdate()
-  private async update() {
+  private async atUpdate() {
     this.updatedAt = new Date();
   }
 }

@@ -8,8 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Role } from './entities/role.entity';
-import { CreateRoleDto, UpdateRoleDto } from './dto/index';
-import { RoleInterface } from './interfaces/index';
+import { CreateRoleDto, UpdateRoleDto } from './dto';
+import { RoleInterface } from './interfaces';
 
 @Injectable()
 export class RolesService {
@@ -28,11 +28,16 @@ export class RolesService {
   }
 
   async findAll(): Promise<RoleInterface[]> {
-    return this.roleRepository.find();
+    return this.roleRepository.find({
+      relations: ['permissions', 'permissions.permission'],
+    });
   }
 
   async findOne(id: number): Promise<RoleInterface> {
-    const role = await this.roleRepository.findOne({ where: { id } });
+    const role = await this.roleRepository.findOne({
+      where: { id },
+      relations: ['permissions', 'permissions.permission'],
+    });
     if (!role)
       throw new NotFoundException(`role not found with an id of ${id}`);
     return role;
