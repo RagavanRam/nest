@@ -58,7 +58,7 @@ export class UsersService {
 
   async findAll(): Promise<UserInterface[]> {
     const users = await this.userRepository.find({
-      relations: ['role', 'role.permissions'],
+      relations: ['role', 'role.permissions', 'role.permissions.permission'],
     });
     return users.map((user) => plainToClass(UserTransformDto, user));
   }
@@ -120,7 +120,6 @@ export class UsersService {
   async remove(id: string): Promise<UserInterface> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['role', 'role.permission'],
     });
     if (!user)
       throw new NotFoundException(`user not found with an id of ${id}`);

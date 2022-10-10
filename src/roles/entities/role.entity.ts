@@ -3,7 +3,7 @@ import { Rolesandpermission } from 'src/rolesandpermissions/entities/rolesandper
 import { User } from 'src/users/entities/user.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
 
-@Entity('role')
+@Entity('roles')
 export class Role extends BaseEntity {
   @Column({ type: 'varchar', unique: true, nullable: false })
   name: string;

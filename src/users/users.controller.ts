@@ -25,8 +25,9 @@ import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from './users.service';
 import { LocalAuthGaurd } from 'src/auth/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CreateUserDto, LocalSigninDto, UpdateUserDto, UserDto } from './dto';
+
 import { UserInterface } from './interfaces';
+import { CreateUserDto, LocalSigninDto, UpdateUserDto, UserDto } from './dto';
 
 @ApiBadRequestResponse({
   description: 'Error: Bad Request',
