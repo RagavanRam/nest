@@ -3,6 +3,7 @@ import { Exclude } from 'class-transformer';
 import {
   IsBoolean,
   IsNotEmpty,
+  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -12,7 +13,7 @@ export class CreateFormsDatumDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsObject()
-  data: JSON;
+  formData: JSON;
 
   @Exclude()
   stage: number;
@@ -30,5 +31,10 @@ export class CreateFormsDatumDto {
   rejected: boolean;
 
   @Exclude()
-  logs: JSON[];
+  logs: object;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  formId: number;
 }

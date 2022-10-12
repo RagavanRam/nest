@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { RolesDto } from './roles.dto';
 
-export class PermissionDto {
+export class WorkflowDto {
   @ApiProperty()
   id: number;
 
@@ -9,10 +8,10 @@ export class PermissionDto {
   name: string;
 
   @ApiProperty()
-  status: boolean;
+  workflow: JSON;
 
-  @ApiProperty({ isArray: true })
-  roles: Array<RolesDto>;
+  @ApiProperty()
+  status: boolean;
 
   @ApiProperty()
   createdAt: Date;

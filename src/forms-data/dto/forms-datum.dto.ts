@@ -1,18 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { RolesDto } from './roles.dto';
 
-export class PermissionDto {
+export class FormsDatumDto {
   @ApiProperty()
   id: number;
 
   @ApiProperty()
-  name: string;
+  formData: JSON;
 
   @ApiProperty()
-  status: boolean;
+  stage: number;
 
-  @ApiProperty({ isArray: true })
-  roles: Array<RolesDto>;
+  @ApiProperty()
+  status: string;
+
+  @ApiProperty()
+  logs: object;
 
   @ApiProperty()
   createdAt: Date;

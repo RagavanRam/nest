@@ -99,7 +99,7 @@ export class UsersService {
       });
       if (email) errorMessages.push('email is already exist');
     }
-    if (updateUserDto.roleid && updateUserDto.roleid !== user.role?.id) {
+    if (updateUserDto.roleid) {
       const role = await this.roleRepository.findOne({
         where: { id: updateUserDto.roleid },
         relations: ['permissions'],

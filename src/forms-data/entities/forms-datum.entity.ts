@@ -1,10 +1,11 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from 'src/base-entity';
+import { Form } from 'src/forms/entities/form.entity';
 
 @Entity('forms-datum')
 export class FormsDatum extends BaseEntity {
   @Column({ type: 'json', nullable: false })
-  data: JSON;
+  formData: JSON;
 
   @Column({ type: 'int', nullable: false, default: 0 })
   stage: number;
@@ -16,6 +17,13 @@ export class FormsDatum extends BaseEntity {
   })
   status: string;
 
-  @Column({ type: 'json', default: [], array: true })
-  logs: JSON;
+  @Column({ type: 'json', nullable: true })
+  logs: object;
+
+  @JoinColumn()
+  @ManyToOne(() => Form, (form) => form.formsDatum, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  form: Form;
 }
