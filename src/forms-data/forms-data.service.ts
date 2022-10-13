@@ -32,7 +32,13 @@ export class FormsDataService {
       throw new NotFoundException(
         `form not found with an id of ${createFormsDatumDto.formId}`,
       );
-    const workflow = await this.addFormData(form, createFormsDatumDto);
+    const workflow = await this.workFlowEngine(
+      'create',
+      null,
+      null,
+      form,
+      createFormsDatumDto,
+    );
     const formDatum = {
       ...createFormsDatumDto,
       form,
@@ -84,6 +90,7 @@ export class FormsDataService {
       request.form = form;
     }
     const workflow: any = await this.workFlowEngine(
+      'update',
       userId,
       formData,
       request.form,
@@ -118,26 +125,17 @@ export class FormsDataService {
           },
         },
       };
-    }
-    if (form.workflow[0]?.status) {
+    } else if (form.workflow && form.workflow.workflow[0]) {
       return {
         stage: 0,
-        status: form.workflow[0]?.status,
+        status: form.workflow.workflow[0]?.status
+          ? form.workflow.workflow[0]?.status
+          : 'submitted',
         logs: {
           0: {
-            status: form.workflow[0]?.status,
-            user: null,
-            date: new Date(),
-          },
-        },
-      };
-    } else {
-      return {
-        stage: 0,
-        status: 'submitted',
-        logs: {
-          0: {
-            status: 'submitted',
+            status: form.workflow.workflow[0]?.status
+              ? form.workflow.workflow[0]?.status
+              : 'submitted',
             user: null,
             date: new Date(),
           },
@@ -147,99 +145,143 @@ export class FormsDataService {
   }
 
   async workFlowEngine(
-    userId: string,
-    formData: FormsDatum,
+    type: string,
+    userId: string | null,
+    formData: FormsDatum | null,
     form: Form,
-    updateFormsDatumDto: UpdateFormsDatumDto,
+    FormsDatumDto: UpdateFormsDatumDto | CreateFormsDatumDto,
   ) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['role'],
-    });
-    const currentStage = formData.stage;
-    const currentStatus = formData.status;
-    const currentLogs = formData.logs;
-    const logsLength = Object.keys(currentLogs).length;
-    if (!form.workflow) {
-      currentLogs[logsLength] = {
-        status: updateFormsDatumDto.status
-          ? updateFormsDatumDto.status
-          : currentStatus,
-        user,
-        date: new Date(),
-      };
-      return { ...updateFormsDatumDto, logs: { ...currentLogs } };
-    } else if (
-      form.workflow &&
-      formData.status === 'rejected' &&
-      !updateFormsDatumDto.rejected
-    ) {
-      if (!(user.role.name === 'admin')) throw new ForbiddenException();
-      if (form.workflow.workflow[0]?.status) {
-        currentLogs[logsLength] = {
-          status: form.workflow.workflow[0]?.status,
-          user,
-          date: new Date(),
-        };
+    if (type === 'create') {
+      if (!form.workflow) {
         return {
-          ...updateFormsDatumDto,
           stage: 0,
-          status: form.workflow.workflow[0]?.status,
-          logs: { ...currentLogs },
+          status: FormsDatumDto?.status ? FormsDatumDto?.status : 'submitted',
+          logs: {
+            0: {
+              status: FormsDatumDto?.status
+                ? FormsDatumDto?.status
+                : 'submitted',
+              user: null,
+              date: new Date(),
+            },
+          },
         };
-      } else {
-        currentLogs[logsLength] = {
-          status: 'submitted',
-          user,
-          date: new Date(),
-        };
+      } else if (form.workflow && form.workflow.workflow[0]) {
         return {
-          ...updateFormsDatumDto,
           stage: 0,
-          status: 'submitted',
-          logs: { ...currentLogs },
+          status: form.workflow.workflow[0]?.status
+            ? form.workflow.workflow[0]?.status
+            : 'submitted',
+          logs: {
+            0: {
+              status: form.workflow.workflow[0]?.status
+                ? form.workflow.workflow[0]?.status
+                : 'submitted',
+              user: null,
+              date: new Date(),
+            },
+          },
         };
       }
-    } else if (
-      updateFormsDatumDto.rejected &&
-      (user.role.name === form.workflow.workflow[currentStage]?.rolename ||
-        user.role.name === 'admin')
-    ) {
-      currentLogs[logsLength] = {
-        status: 'rejected',
-        user,
-        date: new Date(),
+    } else if (type === 'update') {
+      const requestUser = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['role'],
+      });
+      const user = {
+        id: requestUser.id,
+        name: requestUser.username,
+        role: requestUser.role.name,
       };
-      return {
-        ...updateFormsDatumDto,
-        stage: -1,
-        status: 'rejected',
-        logs: { ...currentLogs },
-      };
-    } else if (!updateFormsDatumDto.rejected) {
-      const nextStage = currentStage + 1;
-      if (form.workflow.workflow[nextStage]) {
-        if (
-          !form.workflow.workflow[nextStage]?.status ||
-          !(form.workflow.workflow[currentStage]?.rolename === user.role.name)
-        )
+      const currentStage = formData.stage;
+      const currentStatus = formData.status;
+      const currentLogs = formData.logs;
+      const logsLength = Object.keys(currentLogs).length;
+      // if the workflow exist or not
+      if (!form.workflow) {
+        currentLogs[logsLength] = {
+          status: FormsDatumDto.status ? FormsDatumDto.status : currentStatus,
+          user,
+          date: new Date(),
+        };
+        return { ...FormsDatumDto, logs: { ...currentLogs } };
+      } else if (
+        form.workflow &&
+        formData.status === 'rejected' &&
+        !FormsDatumDto.rejected
+      ) {
+        if (!(requestUser.role.name === 'admin'))
           throw new ForbiddenException();
+        if (form.workflow.workflow[0]?.status) {
+          currentLogs[logsLength] = {
+            status: form.workflow.workflow[0]?.status,
+            user,
+            date: new Date(),
+          };
+          return {
+            ...FormsDatumDto,
+            stage: 0,
+            status: form.workflow.workflow[0]?.status,
+            logs: { ...currentLogs },
+          };
+        } else {
+          currentLogs[logsLength] = {
+            status: 'submitted',
+            user,
+            date: new Date(),
+          };
+          return {
+            ...FormsDatumDto,
+            stage: currentStage,
+            status: currentStatus,
+            logs: { ...currentLogs },
+          };
+        }
+      } else if (
+        FormsDatumDto.rejected &&
+        (requestUser.role.name ===
+          form.workflow.workflow[currentStage]?.rolename ||
+          requestUser.role.name === 'admin')
+      ) {
         currentLogs[logsLength] = {
-          status: form.workflow.workflow[nextStage]?.status,
+          status: 'rejected',
           user,
           date: new Date(),
         };
         return {
-          ...updateFormsDatumDto,
-          stage: nextStage,
-          status: form.workflow.workflow[nextStage]?.status,
+          ...FormsDatumDto,
+          stage: -1,
+          status: 'rejected',
           logs: { ...currentLogs },
         };
+      } else if (!FormsDatumDto.rejected) {
+        const nextStage = currentStage + 1;
+        if (form.workflow.workflow[nextStage]) {
+          if (
+            !form.workflow.workflow[nextStage]?.status ||
+            !(
+              form.workflow.workflow[currentStage]?.rolename ===
+              requestUser.role.name
+            )
+          )
+            throw new ForbiddenException();
+          currentLogs[logsLength] = {
+            status: form.workflow.workflow[nextStage]?.status,
+            user,
+            date: new Date(),
+          };
+          return {
+            ...FormsDatumDto,
+            stage: nextStage,
+            status: form.workflow.workflow[nextStage]?.status,
+            logs: { ...currentLogs },
+          };
+        } else {
+          return;
+        }
       } else {
-        return {};
+        throw new ForbiddenException();
       }
-    } else {
-      throw new ForbiddenException();
     }
   }
 }

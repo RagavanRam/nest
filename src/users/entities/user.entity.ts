@@ -25,6 +25,9 @@ export class User {
   @Column({ type: 'varchar', nullable: false })
   password: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  resetKey: string;
+
   @CreateDateColumn({ nullable: true })
   @Exclude()
   createdAt: Date;

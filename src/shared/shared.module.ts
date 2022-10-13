@@ -6,6 +6,7 @@ import { Rolesandpermission } from 'src/rolesandpermissions/entities/rolesandper
 import { User } from 'src/users/entities/user.entity';
 
 import { RoleGuard } from './guards/roles.guard';
+import { EmailService } from './services/email.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Rolesandpermission])],
@@ -14,6 +15,8 @@ import { RoleGuard } from './guards/roles.guard';
       provide: APP_GUARD,
       useClass: RoleGuard,
     },
+    EmailService,
   ],
+  exports: [EmailService],
 })
 export class SharedModule {}

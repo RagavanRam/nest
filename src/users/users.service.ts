@@ -1,18 +1,28 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
+import { v4 as uuidv4 } from 'uuid';
 
 import { User } from './entities/user.entity';
-import { CreateUserDto, UpdateUserDto, UserTransformDto } from './dto';
+import {
+  CreateUserDto,
+  ResetPasswordFinishDto,
+  ResetPasswordInitDto,
+  UpdateUserDto,
+  UserTransformDto,
+} from './dto';
 import { UserInterface } from './interfaces';
 import { Role } from 'src/roles/entities/role.entity';
+import { EmailService } from 'src/shared/services/email.service';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +31,7 @@ export class UsersService {
     private roleRepository: Repository<Role>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private emailService: EmailService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserInterface> {
@@ -126,5 +137,56 @@ export class UsersService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...deletedUser } = await this.userRepository.remove(user);
     return { ...deletedUser, id };
+  }
+
+  async resetPasswordInit(
+    resetPasswordInit: ResetPasswordInitDto,
+  ): Promise<string> {
+    const user = await this.userRepository.findOne({
+      where: { email: resetPasswordInit.email },
+    });
+
+    if (!user)
+      throw new NotFoundException(
+        'No account associated with the provided email address.',
+      );
+
+    user.resetKey = uuidv4();
+
+    await this.userRepository.save(user);
+
+    const nodemailer = await this.emailService.sendResetPasswordMail(user);
+
+    if (nodemailer.accepted.length) {
+      return 'An email with password reset instructions has been sent to the provided email';
+    }
+
+    throw new InternalServerErrorException(
+      'Error sending reset password email',
+    );
+  }
+
+  async resetPasswordFinish(
+    resetPasswordFinish: ResetPasswordFinishDto,
+  ): Promise<string> {
+    if (resetPasswordFinish.password !== resetPasswordFinish.confirmPassword)
+      throw new UnprocessableEntityException(
+        'Password and confirmation password do not match',
+      );
+
+    const user = await this.userRepository.findOne({
+      where: { resetKey: resetPasswordFinish.resetKey },
+    });
+
+    if (!user)
+      throw new NotFoundException(
+        'No associated account for the provided reset key',
+      );
+
+    const hash = await bcrypt.hash(resetPasswordFinish.password, 12);
+
+    await this.userRepository.save({ ...user, resetKey: null, password: hash });
+
+    return 'Password reset request completed successfully';
   }
 }

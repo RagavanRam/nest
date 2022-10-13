@@ -27,7 +27,14 @@ import { LocalAuthGaurd } from 'src/auth/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 import { UserInterface } from './interfaces';
-import { CreateUserDto, LocalSigninDto, UpdateUserDto, UserDto } from './dto';
+import {
+  CreateUserDto,
+  LocalSigninDto,
+  ResetPasswordFinishDto,
+  ResetPasswordInitDto,
+  UpdateUserDto,
+  UserDto,
+} from './dto';
 
 @ApiBadRequestResponse({
   description: 'Error: Bad Request',
@@ -98,6 +105,22 @@ export class UsersController {
   @Post('signup')
   signUpLocal(@Body() createUserDto: CreateUserDto): Promise<UserInterface> {
     return this.usersService.create(createUserDto);
+  }
+
+  @ApiOkResponse({ description: 'OK', type: String })
+  @Post('reset-password/init')
+  resetPasswordInit(
+    @Body() resetPasswordInit: ResetPasswordInitDto,
+  ): Promise<string> {
+    return this.usersService.resetPasswordInit(resetPasswordInit);
+  }
+
+  @ApiOkResponse({ description: 'OK', type: String })
+  @Patch('reset-password/finish')
+  resetPasswordFinish(
+    @Body() resetPasswordFinish: ResetPasswordFinishDto,
+  ): Promise<string> {
+    return this.usersService.resetPasswordFinish(resetPasswordFinish);
   }
 
   @ApiOkResponse({

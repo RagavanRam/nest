@@ -12,9 +12,11 @@ import { SharedModule } from './shared/shared.module';
 import { WorkflowsModule } from './workflows/workflows.module';
 import { FormsModule } from './forms/forms.module';
 import { FormsDataModule } from './forms-data/forms-data.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot(config),
     UsersModule,
     AuthModule,
