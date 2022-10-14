@@ -3,6 +3,7 @@ export interface FormInterface {
   name: string;
   config: JSON;
   status: boolean;
+  emailTemplate: string;
   createdAt: Date;
   updatedAt: Date;
 }

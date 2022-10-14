@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Form } from 'src/forms/entities/form.entity';
+import { EmailService } from 'src/shared/services/email.service';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -21,6 +22,7 @@ export class FormsDataService {
     private formRepository: Repository<Form>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private emailService: EmailService,
   ) {}
 
   async create(createFormsDatumDto: CreateFormsDatumDto) {
@@ -167,6 +169,14 @@ export class FormsDataService {
           },
         };
       } else if (form.workflow && form.workflow.workflow[0]) {
+        if (form.workflow.workflow[0]?.notification) {
+          for (const email of FormsDatumDto.emails) {
+            await this.emailService.sendFormDataStatusMail({
+              email,
+              template: form.emailTemplate,
+            });
+          }
+        }
         return {
           stage: 0,
           status: form.workflow.workflow[0]?.status
@@ -207,8 +217,8 @@ export class FormsDataService {
         return { ...FormsDatumDto, logs: { ...currentLogs } };
       } else if (
         form.workflow &&
-        formData.status === 'rejected' &&
-        !FormsDatumDto.rejected
+        (formData.status === 'rejected' || formData.status === 'modified') &&
+        FormsDatumDto.action === 'approve'
       ) {
         if (!(requestUser.role.name === 'admin'))
           throw new ForbiddenException();
@@ -237,10 +247,24 @@ export class FormsDataService {
             logs: { ...currentLogs },
           };
         }
+      } else if (FormsDatumDto.action === 'manage') {
+        currentLogs[logsLength] = {
+          status: 'modified',
+          user,
+          date: new Date(),
+        };
+        return {
+          ...FormsDatumDto,
+          stage: -1,
+          status: 'modified',
+          logs: { ...currentLogs },
+        };
       } else if (
-        FormsDatumDto.rejected &&
+        FormsDatumDto.action === 'reject' &&
         (requestUser.role.name ===
           form.workflow.workflow[currentStage]?.rolename ||
+          requestUser.username ===
+            form.workflow.workflow[currentStage]?.username ||
           requestUser.role.name === 'admin')
       ) {
         currentLogs[logsLength] = {
@@ -254,14 +278,16 @@ export class FormsDataService {
           status: 'rejected',
           logs: { ...currentLogs },
         };
-      } else if (!FormsDatumDto.rejected) {
+      } else if (FormsDatumDto.action === 'approve') {
         const nextStage = currentStage + 1;
         if (form.workflow.workflow[nextStage]) {
           if (
             !form.workflow.workflow[nextStage]?.status ||
             !(
               form.workflow.workflow[currentStage]?.rolename ===
-              requestUser.role.name
+                requestUser.role.name ||
+              form.workflow.workflow[currentStage]?.username ===
+                requestUser.username
             )
           )
             throw new ForbiddenException();
@@ -270,6 +296,18 @@ export class FormsDataService {
             user,
             date: new Date(),
           };
+          if (
+            form.workflow.workflow[nextStage]?.notification &&
+            formData.emails.length &&
+            formData.form.emailTemplate
+          ) {
+            for (const email of formData.emails) {
+              await this.emailService.sendFormDataStatusMail({
+                email,
+                template: formData.form.emailTemplate,
+              });
+            }
+          }
           return {
             ...FormsDatumDto,
             stage: nextStage,

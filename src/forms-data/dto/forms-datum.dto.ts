@@ -16,6 +16,9 @@ export class FormsDatumDto {
   @ApiProperty()
   logs: object;
 
+  @ApiProperty({ isArray: true })
+  emails: string;
+
   @ApiProperty()
   createdAt: Date;
 

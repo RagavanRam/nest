@@ -20,6 +20,9 @@ export class FormsDatum extends BaseEntity {
   @Column({ type: 'json', nullable: true })
   logs: object;
 
+  @Column({ type: 'varchar', default: [], array: true })
+  emails: string[];
+
   @JoinColumn()
   @ManyToOne(() => Form, (form) => form.formsDatum, {
     nullable: false,

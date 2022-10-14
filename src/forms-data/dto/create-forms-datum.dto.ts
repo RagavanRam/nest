@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
 import {
-  IsBoolean,
+  IsEmail,
   IsNotEmpty,
   IsNumber,
   IsObject,
@@ -24,14 +24,20 @@ export class CreateFormsDatumDto {
   @IsString()
   status: string;
 
-  @ApiProperty({ required: false, default: false })
+  @ApiProperty({ required: false, default: 'manage' })
   @IsOptional()
   @IsNotEmpty()
-  @IsBoolean()
-  rejected: boolean;
+  @IsString()
+  action: string;
 
   @Exclude()
   logs: object;
+
+  @ApiProperty({ required: false, default: [] })
+  @IsOptional()
+  @IsNotEmpty()
+  @IsEmail({}, { each: true })
+  emails: [];
 
   @ApiProperty()
   @IsNotEmpty()

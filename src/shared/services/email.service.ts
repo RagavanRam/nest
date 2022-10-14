@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createTransport } from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { User } from 'src/users/entities/user.entity';
+import { FormDataMail } from '../interfaces';
 
 @Injectable()
 export class EmailService {
@@ -50,6 +51,19 @@ export class EmailService {
           <p>LB4 team</p>
       </div>
       `,
+    };
+    return transporter.sendMail(emailTemplate);
+  }
+
+  async sendFormDataStatusMail(
+    formDataMail: FormDataMail,
+  ): Promise<SMTPTransport.SentMessageInfo> {
+    const transporter = await EmailService.setupTransporter();
+    const emailTemplate = {
+      from: '',
+      to: formDataMail.email,
+      subject: '[LB4] Reset Password Request',
+      html: formDataMail.template,
     };
     return transporter.sendMail(emailTemplate);
   }

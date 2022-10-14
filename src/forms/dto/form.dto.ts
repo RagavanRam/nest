@@ -14,6 +14,9 @@ export class FormDto {
   status: boolean;
 
   @ApiProperty()
+  emailTemplate: string;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

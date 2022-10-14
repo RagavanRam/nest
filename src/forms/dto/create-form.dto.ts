@@ -27,6 +27,11 @@ export class CreateFormDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @IsString()
+  emailTemplate: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsNumber()
   workflowId: number;
 }

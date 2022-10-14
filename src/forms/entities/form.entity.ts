@@ -19,6 +19,9 @@ export class Form extends BaseEntity {
   })
   status: boolean;
 
+  @Column({ type: 'varchar' })
+  emailTemplate: string;
+
   @JoinColumn()
   @ManyToOne(() => Workflow, (workflow) => workflow.forms, {
     nullable: true,
